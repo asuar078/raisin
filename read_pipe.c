@@ -22,10 +22,13 @@ int main(int argc, char **argv){
     /* write to fifi */
     /* fd = open(my_fifo, O_WRONLY); */
     /* write(fd, "hi", sizeof("hi")); */
-    fd = open(my_fifo, O_RDONLY);
-    read(fd, buf, MAX_BUF);
-    printf("Received %s\n", buf); 
-    close(fd);
+    while(1){
+        fd = open(my_fifo, O_RDONLY);
+        read(fd, buf, MAX_BUF);
+        printf("Received %s\n", buf); 
+        memset(buf, 0, sizeof(buf));
+        close(fd);
+    }
 
     return 0;
 }

