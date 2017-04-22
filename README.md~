@@ -8,14 +8,8 @@
 * unpid $PID        Unhides the specified PID.
 * hfile $FILENAME   Hides the specified FILENAME globally. Must be a filename without any path
 * unfile $FILENAME  Unhides the specified FILENAME.
-* hide u             Hides the rootkit LKM.
+* hide              Hides the rootkit LKM.
 * unhide            Unhides the rootkit LKM.
 * protect           Protects the rootkit from rmmod.
 * unprotect         Disables the rmmod protection.
 * reverse           Sends start command to begin reverse shell.
-
-## NOTES
-
-* For hfile and unfile the path to the file must be from the persecptive of 
-the application where it was started.
-* In order to avoid errors with c strings add the '\0' to the end of file name

