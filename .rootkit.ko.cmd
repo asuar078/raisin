@@ -1,1 +1,0 @@
-cmd_/home/rigby/workspace/raisin/rootkit.ko := ld -r -m elf_x86_64 -T ./scripts/module-common.lds --build-id  -o /home/rigby/workspace/raisin/rootkit.ko /home/rigby/workspace/raisin/rootkit.o /home/rigby/workspace/raisin/rootkit.mod.o

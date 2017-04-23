@@ -4,8 +4,12 @@
 *.obj
 *.elf
 *.cmd
-*.symvers
+Module.symvers
 *.order
+*.symvers 
+*.mod.* 
+*.order
+
 
 # Precompiled Headers
 *.gch
