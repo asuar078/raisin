@@ -12,7 +12,7 @@
 * unhide            Unhides the rootkit LKM.
 * protect           Protects the rootkit from rmmod.
 * unprotect         Disables the rmmod protection.
-* reverse           Sends start command to begin reverse shell.
+* reverse $IP       Sends start command to begin reverse shell at IP address, port is 443
 
 ## NOTES
 

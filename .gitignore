@@ -3,6 +3,9 @@
 *.ko
 *.obj
 *.elf
+*.cmd
+*.symvers
+*.order
 
 # Precompiled Headers
 *.gch
@@ -31,3 +34,9 @@
 # Debug files
 *.dSYM/
 *.su
+
+# vim files
+*.swm
+*.swn
+*.swp
+*.swo

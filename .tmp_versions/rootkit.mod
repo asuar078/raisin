@@ -1,2 +1,2 @@
-/home/bigbywolf/Workspace/raisin/rootkit.ko
-/home/bigbywolf/Workspace/raisin/rootkit.o
+/home/rigby/workspace/raisin/rootkit.ko
+/home/rigby/workspace/raisin/rootkit.o
