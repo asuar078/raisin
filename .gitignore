@@ -9,6 +9,7 @@ Module.symvers
 *.symvers 
 *.mod.* 
 *.order
+.tmp_versions
 
 
 # Precompiled Headers
