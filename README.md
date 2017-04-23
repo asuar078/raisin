@@ -1,5 +1,6 @@
 # Raisin Malware
 
+The raison malware 
 
 ## Options 
 
@@ -18,4 +19,5 @@
 
 * For hfile and unfile the path to the file must be from the persecptive of 
 the application where it was started.
-* In order to avoid errors with c strings add the '\0' to the end of file name
+* In order to avoid errors with c strings add the '\0' to the end of the line.
+    ex. echo -n "unhide\0" > pipe_name
