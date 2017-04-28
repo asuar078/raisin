@@ -5,6 +5,11 @@
 Raisin can be download at https://github.com/asuar078/raisin, visit page
 to see instructions with markdown translated.
 
+Created by:
+* Arian Suarez
+* Scott Dure
+* Donatto Punyed
+
 The raisin malware is a combination rootkit and reverse shell application. The
 raisin malware uses the LKM created by [Maxim
 Biro](https://github.com/nurupo/rootkit). Grape is a continuously running client
